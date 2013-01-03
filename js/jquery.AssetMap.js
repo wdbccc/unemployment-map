@@ -68,8 +68,8 @@ jQuery.support.cors = true;
     descriptionEllipsesText = "...",
     descriptionMoreText = "more",
     descriptionLessText = "less",
-	 mapIntro = "Click the location of your business on the map to view a custom list of resources available for that location. Resources can be toggled by the following categories:",
-    mapCredit = "This map was built by a collaborative effort between the Contra Costa County Workforce Development Board, Department of Conservation and Development, Department of Information Technology, East Bay Economic Development Association and PMC.";
+	 mapIntro = "Click a location on the map to view unemployment statistics for that location. Data provided by California EDD.",
+    mapCredit = "Methodology disclaimer: Monthly city and COP labor force data are derived by multiplying current estimates of county employment and unemployment by the employment and unemployment shares (ratios) of each city and COP at the time of the 2000 Census. Ratios for cities of 25.000 or more persons were developed from special tabulations based on household population only from the Bureau of Labor Statistics. For smaller cities and COP, ratios were calculated from published census data City and COP unrounded employment and unemployment are summed to get the labor force The unemployment rate is calculated by dividing unemployment by the labor force. Then the labor force. employment, and unemployment are rounded. This method assumes that the rates of change in employment and unemployment. since 2000. are exactly the same in each city and CDP as at the county level (i.e., that the shares are still accurate). If this assumption is not true for a specific city or CDP, then the estimates for that area may not represent the current economic conditions. Since this assumption is untested caution should be employed when using these data.";
 
     /**
      * creating the user click marker -if already created reset the position
@@ -296,7 +296,7 @@ jQuery.support.cors = true;
               }
               groupHeight += 1;
 
-              var itemString = "<div class='resourceItem'><h3>" + val["name"] + "</h3>";
+              var itemString = "<div class='resourceItem'><h3>" + val["area_name"] + "</h3>";
               if (val["url"]) {
                 itemString += "<strong>website:</strong> <a href='" + cleanURLLink(val["url"]) + "'>" + cleanURLView(val["url"]) + "</a></br>"
               };
@@ -394,18 +394,18 @@ jQuery.support.cors = true;
     var loadResultsProfileData = function (data) {
       if (resultsProfileData && resultsProfileData.rows && resultsProfileData.rows.length > 0) {
         var val = resultsProfileData.rows[0];
-        var itemString = "<div class='resourceItem Profile'><h2>Community: " + val["name"] + "</h2>";
-        if (val["chamber_url"]) {
-          itemString += "<a target='_blank' href='" + cleanURLLink(val["chamber_url"]) + "'>Chamber of Commerce</a></br>"
+        var itemString = "<div class='resourceItem Profile'><h2>Location: " + val["area_name"] + "</h2>";
+        if (val["laborforce"]) {
+          itemString += "Labor Force: " + val["laborforce"] + "</br>"
         };
-        if (val["dem_url"]) {
-          itemString += "<a target='_blank' href='" + cleanURLLink(val["dem_url"]) + "'>Demographic Profile</a></br>"
+        if (val["employment"]) {
+          itemString += "Number Employed: " + val["employment"] + "</br>"
         };
-        if (val["econ_url"]) {
-          itemString += "<a target='_blank' href='" + cleanURLLink(val["econ_url"]) + "'>Economic Profile</a></br>"
+        if (val["unemploy_num"]) {
+          itemString += "Number Unemployed: " + val["unemploy_num"] + "</br>"
         };
-        if (val["econdev_url"]) {
-          itemString += "<a target='_blank' href='" + cleanURLLink(val["econdev_url"]) + "'>Economic Development</a></br>"
+        if (val["unemploy_rate"]) {
+          itemString += "Unemployment Rate: " + val["unemploy_rate"] + "</br>"
         };
         itemString += "</div>";
 
@@ -426,7 +426,8 @@ jQuery.support.cors = true;
 
         var lat = userMarker.position.lat();
         var lng = userMarker.position.lng();
-        var mapUrl = "http://wdbassetmap.cartodb.com/api/v2/sql/?q=SELECT asset.* FROM asset " + "JOIN asset_place ON asset.cartodb_id = asset_place.asset_id JOIN place ON place.cartodb_id = asset_place.place_id WHERE " + "ST_Intersects( place.the_geom, ST_SetSRID(ST_Point(" + lng + "," + lat + "), 4326)) order by asset.name asc";
+        //var mapUrl = "http://wdbassetmap.cartodb.com/api/v2/sql/?q=SELECT asset.* FROM asset " + "JOIN asset_place ON asset.cartodb_id = asset_place.asset_id JOIN place ON place.cartodb_id = asset_place.place_id WHERE " + "ST_Intersects( place.the_geom, ST_SetSRID(ST_Point(" + lng + "," + lat + "), 4326)) order by asset.name asc";
+        var mapUrl = "http://wdbassetmap.cartodb.com/api/v2/sql/?q=SELECT unemployment.* FROM unemployment " + "JOIN unemployment_place ON unemployment.cartodb_id = unemployment_place.unemployment_id JOIN place ON place.cartodb_id = unemployment_place.place_id WHERE " + "ST_Intersects( place.the_geom, ST_SetSRID(ST_Point(" + lng + "," + lat + "), 4326)) order by unemployment.unemploy_rate asc";
         if ($.browser.msie && window.XDomainRequest) {
           // Use Microsoft XDR
           var xdr = new XDomainRequest();
@@ -464,7 +465,7 @@ jQuery.support.cors = true;
       if (userMarker) {
         var lat = userMarker.position.lat();
         var lng = userMarker.position.lng();
-        var mapUrl = "http://wdbassetmap.cartodb.com/api/v2/sql/?q=SELECT place_profiles.name, place_profiles.chamber_url, place_profiles.dem_url, place_profiles.econ_url, place_profiles.econdev_url, place_profiles.county FROM place_profiles " + "JOIN place ON place.name = place_profiles.name WHERE " + "ST_Intersects( place.the_geom, ST_SetSRID(ST_Point(" + lng + "," + lat + "), 4326))";
+        var mapUrl = "http://wdbassetmap.cartodb.com/api/v2/sql/?q=SELECT unemployment.* FROM unemployment " + "JOIN unemployment_place ON unemployment.cartodb_id = unemployment_place.unemployment_id JOIN place ON place.cartodb_id = unemployment_place.place_id WHERE " + "ST_Intersects( place.the_geom, ST_SetSRID(ST_Point(" + lng + "," + lat + "), 4326)) order by unemployment.unemploy_rate asc"; //SELECT place_profiles.name, place_profiles.chamber_url, place_profiles.dem_url, place_profiles.econ_url, place_profiles.econdev_url, place_profiles.county FROM place_profiles " + "JOIN place ON place.name = place_profiles.name WHERE " + "ST_Intersects( place.the_geom, ST_SetSRID(ST_Point(" + lng + "," + lat + "), 4326))";
         if ($.browser.msie && window.XDomainRequest) {
           // Use Microsoft XDR
           var xdr = new XDomainRequest();
@@ -663,7 +664,7 @@ jQuery.support.cors = true;
 	 
 	 this.append("<div id='map'></div><div id='geoLocation'></div>" +
 			       "<div class='intro'>" + mapIntro + "</div>" +
-			       "<div id='data'><div id='alerts'></div><div id='categoryList'><div class='categoryLabel'>Categories:</div><div class='buttonList'></div></div>" +
+			       "<div id='data'><div id='alerts'></div><div id='categoryList'><div class='categoryLabel'></div><div class='buttonList'></div></div>" +
 			       "<div id='results'><div class='resourceColumns Column1'>Click your location on the map to get started</div><div class='resourceColumns Column2'></div></div><div style='clear:both;'></div><div class='mapCredit'>" + mapCredit + "</div></div>");
 	 mapContainer = $("#map", this);
 	 geoLocationContainer = $("#geoLocation", this);
@@ -676,8 +677,9 @@ jQuery.support.cors = true;
 		getTileUrl: function (coord, zoom) {
 		  var style = "%23place{ [loc_type='City']{polygon-fill:%231166FF; polygon-opacity:0.2; line-opacity:0.7; line-color:%23000000; line-width:0.2;} [loc_type='County']{polygon-fill:%23000000; polygon-opacity:0.0; line-opacity:.4; line-color:%23000000; line-width:0.8;} }";
 		  var sql = "SELECT name, the_geom_webmercator, loc_type FROM place Where loc_type = 'City' OR loc_type = 'County'"
-		  return "https://wdbassetmap.cartodb.com/tiles/place/" + zoom + "/" + coord.x + "/" + coord.y + ".png" +
-			 "?sql=" + sql;
+		  return "https://wdbassetmap.cartodb.com/tiles/unemployment_merge/" + zoom + "/" + coord.x + "/" + coord.y + ".png"; 
+      //+
+			// "?sql=" + sql;
 		},
 		tileSize: new google.maps.Size(256, 256)
 	 };
@@ -778,7 +780,7 @@ jQuery.support.cors = true;
 	 cartodb_imagemapSpecialZone = new google.maps.ImageMapType(cartodb_special_zone);
 	 //carto_map.overlayMapTypes.insertAt(2, cartodb_imagemapSpecialZone);
 
-	 createButtonList();
+	 //createButtonList();
     return this;
   };
   
