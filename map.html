@@ -9,11 +9,10 @@
       }
     </style>
 
-    <link rel="stylesheet" href="http://libs.cartodb.com/cartodb.js/v2/themes/css/cartodb.css" />
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v2/themes/css/cartodb.css" />
     <!--[if lte IE 8]>
-        <link rel="stylesheet" href="http://libs.cartodb.com/cartodb.js/v2/themes/css/cartodb.ie.css" />
+        <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v2/themes/css/cartodb.ie.css" />
     <![endif]-->
-
   </head>
     
   <body>
@@ -44,46 +43,150 @@
     </div>
   </script>
 
+  <!-- include google maps library *before* load cartodb.js -->
+  <script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+  <!-- include cartodb.js library -->
   <script src="http://libs.cartocdn.com/cartodb.js/v2/cartodb.js"></script>
+
   <script>
 
     function main() {
 
-      var map = L.map('map', { 
-        zoomControl: false,
-        center: [37.87, -121.90],
-        zoom: 11
-      })
+        var map;
 
-      // add a nice baselayer from mapbox
-      L.tileLayer('http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/{z}/{x}/{y}.png', {
-        attribution: 'MapBox'
-      }).addTo(map);
+        // create google maps map
+        var mapOptions = {
+          zoom: 11,
+          center: new google.maps.LatLng(37.9, -122),
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          styles: [
+          {
+            "stylers": [
+              {
+                "saturation": -65
+              },
+              {
+                "gamma": 1.52
+              }
+            ]
+          },
+          {
+            "featureType": "administrative",
+            "stylers": [
+              {
+                "saturation": -95
+              },
+              {
+                "gamma": 2.26
+              }
+            ]
+          },
+          {
+            "featureType": "water",
+            "elementType": "labels",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "administrative.locality",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "road",
+            "stylers": [
+              {
+                "visibility": "simplified"
+              },
+              {
+                "saturation": -99
+              },
+              {
+                "gamma": 2.22
+              }
+            ]
+          },
+          {
+            "featureType": "poi",
+            "elementType": "labels",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "road.arterial",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "road.local",
+            "elementType": "labels",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "transit",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "road",
+            "elementType": "labels",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "poi",
+            "stylers": [
+              {
+                "saturation": -55
+              }
+            ]
+          }
+        ]
+        };
+        map = new google.maps.Map(document.getElementById('map'),  mapOptions);
 
-      cartodb.createLayer(map, 'http://wdbassetmap.cartodb.com/api/v1/viz/unemployment_map_timeline/viz.json')
-       .on('done', function(layer) {
+        cartodb.createLayer(map, 'http://wdbassetmap.cartodb.com/api/v1/viz/unemployment_map_timeline/viz.json')
+         .on('done', function(layer) {
+          map.overlayMapTypes.setAt(0, layer);
+          layer.infowindow.set('template', $('#infowindow_template').html());
+          layer.on('featureOver', function(e, pos, latlng, data) {
+            cartodb.log.log(e, pos, latlng, data);
+          });
 
-        map.addLayer(layer);
+          layer.on('error', function(err) {
+            cartodb.log.log('error: ' + err);
+          });
 
-        layer.infowindow.set('template', $('#infowindow_template').html());
-
-        layer.on('featureOver', function(e, pos, latlng, data) {
-          console.log(e, pos, latlng, data);
+        }).on('error', function() {
+          cartodb.log.log("some error occurred");
         });
-
-        layer.on('error', function(err) {
-          console.log('error: ' + err);
-        });
-
-      }).on('error', function() {
-        console.log("some error occurred");
-      });
 
     }
 
     window.onload = main;
 
   </script>
-
 
 </html>
