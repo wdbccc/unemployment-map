@@ -1,74 +1,192 @@
 <!DOCTYPE html>
 <html>
-
   <head>
-    <meta charset='utf-8' />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="Unemployment-map : " />
+    <style>
+      html, body, #map {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
 
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Unemployment-map</title>
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v2/themes/css/cartodb.css" />
+    <!--[if lte IE 8]>
+        <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v2/themes/css/cartodb.ie.css" />
+    <![endif]-->
   </head>
-
-  <body>
-
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <header class="inner">
-          <a id="forkme_banner" href="https://github.com/wdbccc/unemployment-map">View on GitHub</a>
-
-          <h1 id="project_title">Unemployment-map</h1>
-          <h2 id="project_tagline"></h2>
-
-            <section id="downloads">
-              <a class="zip_download_link" href="https://github.com/wdbccc/unemployment-map/zipball/master">Download this project as a .zip file</a>
-              <a class="tar_download_link" href="https://github.com/wdbccc/unemployment-map/tarball/master">Download this project as a tar.gz file</a>
-            </section>
-        </header>
-    </div>
-
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-      <section id="main_content" class="inner">
-        <h3>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
-
-<h3>Designer Templates</h3>
-
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
-
-<h3>Authors and Contributors</h3>
-
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
-
-<h3>Support or Contact</h3>
-
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-      </section>
-    </div>
-
-    <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-      <footer class="inner">
-        <p class="copyright">Unemployment-map maintained by <a href="https://github.com/wdbccc">wdbccc</a></p>
-        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
-      </footer>
-    </div>
-
     
-
+  <body>
+    <div id="map"></div>
   </body>
+
+  <script type="infowindow/html" id="infowindow_template">
+    <div class="cartodb-popup">
+
+      <a href="#close" class="cartodb-popup-close-button close">x</a>
+
+       <div class="cartodb-popup-content-wrapper">
+         <div class="cartodb-popup-content">
+         <img src="http://chart.googleapis.com/chart?chxr=0,0,20&chxt=y&chs=180x125&cht=lc&chco=A2C180&chds=0,20&chd=t:{{content.data.jan}},{{content.data.feb}},{{content.data.mar}},{{content.data.apr}},{{content.data.may}},{{content.data.jun}},{{content.data.jul}},{{content.data.aug}},{{content.data.sep}},{{content.data.oct}},{{content.data.nov}}&chls=1&chtt={{content.data.area_name}}+Unemployment+Rate&chts=676767,11" width="160" height="110" alt=""/>
+           <!-- content.data contains the field info -->
+           <h4>
+           Unemployment rate: {{content.data.unemployment_rate}}
+           <br>
+           Unemployed: {{content.data.unemployed}}
+           <br>
+           Employment: {{content.data.employment}}
+           <br>           
+           Labor force: {{content.data.laborforce}}
+           </h4>
+         </div>
+       </div>
+       <div class="cartodb-popup-tip-container"></div>
+    </div>
+  </script>
+
+  <!-- include google maps library *before* load cartodb.js -->
+  <script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+  <!-- include cartodb.js library -->
+  <script src="http://libs.cartocdn.com/cartodb.js/v2/cartodb.js"></script>
+
+  <script>
+
+    function main() {
+
+        var map;
+
+        // create google maps map
+        var mapOptions = {
+          zoom: 11,
+          center: new google.maps.LatLng(37.9, -122),
+          mapTypeId: google.maps.MapTypeId.ROADMAP,
+          styles: [
+          {
+            "stylers": [
+              {
+                "saturation": -65
+              },
+              {
+                "gamma": 1.52
+              }
+            ]
+          },
+          {
+            "featureType": "administrative",
+            "stylers": [
+              {
+                "saturation": -95
+              },
+              {
+                "gamma": 2.26
+              }
+            ]
+          },
+          {
+            "featureType": "water",
+            "elementType": "labels",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "administrative.locality",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "road",
+            "stylers": [
+              {
+                "visibility": "simplified"
+              },
+              {
+                "saturation": -99
+              },
+              {
+                "gamma": 2.22
+              }
+            ]
+          },
+          {
+            "featureType": "poi",
+            "elementType": "labels",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "road.arterial",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "road.local",
+            "elementType": "labels",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "transit",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "road",
+            "elementType": "labels",
+            "stylers": [
+              {
+                "visibility": "off"
+              }
+            ]
+          },
+          {
+            "featureType": "poi",
+            "stylers": [
+              {
+                "saturation": -55
+              }
+            ]
+          }
+        ]
+        };
+        map = new google.maps.Map(document.getElementById('map'),  mapOptions);
+
+        cartodb.createLayer(map, 'http://wdbassetmap.cartodb.com/api/v1/viz/unemployment_map_timeline/viz.json')
+         .on('done', function(layer) {
+          map.overlayMapTypes.setAt(0, layer);
+          layer.infowindow.set('template', $('#infowindow_template').html());
+          layer.on('featureOver', function(e, pos, latlng, data) {
+            cartodb.log.log(e, pos, latlng, data);
+          });
+
+          layer.on('error', function(err) {
+            cartodb.log.log('error: ' + err);
+          });
+
+        }).on('error', function() {
+          cartodb.log.log("some error occurred");
+        });
+
+    }
+
+    window.onload = main;
+
+  </script>
+
 </html>
