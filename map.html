@@ -27,7 +27,7 @@
 
        <div class="cartodb-popup-content-wrapper">
          <div class="cartodb-popup-content">
-         <img src="http://chart.googleapis.com/chart?chxr=0,0,10&chxt=y&chs=180x125&cht=lc&chco=A2C180&chds=6,8&chd=t:7.8,7.8,8,7.4,7.3,7.7,7.6,7.3,6.8,6.9,6.7&chls=1&chtt={{content.data.area_name}}+Unemployment+Rate&chts=676767,11" width="160" height="110" alt=""/>
+         <img src="http://chart.googleapis.com/chart?chxr=0,0,20&chxt=y&chs=180x125&cht=lc&chco=A2C180&chds=0,20&chd=t:{{content.data.jan}},{{content.data.feb}},{{content.data.mar}},{{content.data.apr}},{{content.data.may}},{{content.data.jun}},{{content.data.jul}},{{content.data.aug}},{{content.data.sep}},{{content.data.oct}},{{content.data.nov}}&chls=1&chtt={{content.data.area_name}}+Unemployment+Rate&chts=676767,11" width="160" height="110" alt=""/>
            <!-- content.data contains the field info -->
            <h4>
            Unemployment rate: {{content.data.unemployment_rate}}
