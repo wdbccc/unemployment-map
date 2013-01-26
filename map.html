@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      html, body, #map {
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+    </style>
+
+    <link rel="stylesheet" href="http://libs.cartodb.com/cartodb.js/v2/themes/css/cartodb.css" />
+    <!--[if lte IE 8]>
+        <link rel="stylesheet" href="http://libs.cartodb.com/cartodb.js/v2/themes/css/cartodb.ie.css" />
+    <![endif]-->
+
+  </head>
+    
+  <body>
+    <div id="map"></div>
+  </body>
+
+  <script type="infowindow/html" id="infowindow_template">
+    <div class="cartodb-popup">
+
+      <a href="#close" class="cartodb-popup-close-button close">x</a>
+
+       <div class="cartodb-popup-content-wrapper">
+         <div class="cartodb-popup-content">
+         <img src="http://chart.googleapis.com/chart?chxr=0,0,10&chxt=y&chs=180x125&cht=lc&chco=A2C180&chds=6,8&chd=t:7.8,7.8,8,7.4,7.3,7.7,7.6,7.3,6.8,6.9,6.7&chls=1&chtt={{content.data.area_name}}+Unemployment+Rate&chts=676767,11" width="160" height="110" alt=""/>
+           <!-- content.data contains the field info -->
+           <h4>
+           Unemployment rate: {{content.data.unemployment_rate}}
+           <br>
+           Unemployed: {{content.data.unemployed}}
+           <br>
+           Employment: {{content.data.employment}}
+           <br>           
+           Labor force: {{content.data.laborforce}}
+           </h4>
+         </div>
+       </div>
+       <div class="cartodb-popup-tip-container"></div>
+    </div>
+  </script>
+
+  <script src="http://libs.cartocdn.com/cartodb.js/v2/cartodb.js"></script>
+  <script>
+
+    function main() {
+
+      var map = L.map('map', { 
+        zoomControl: false,
+        center: [37.87, -121.90],
+        zoom: 11
+      })
+
+      // add a nice baselayer from mapbox
+      L.tileLayer('http://a.tiles.mapbox.com/v3/mapbox.mapbox-streets/{z}/{x}/{y}.png', {
+        attribution: 'MapBox'
+      }).addTo(map);
+
+      cartodb.createLayer(map, 'http://wdbassetmap.cartodb.com/api/v1/viz/unemployment_map_timeline/viz.json')
+       .on('done', function(layer) {
+
+        map.addLayer(layer);
+
+        layer.infowindow.set('template', $('#infowindow_template').html());
+
+        layer.on('featureOver', function(e, pos, latlng, data) {
+          console.log(e, pos, latlng, data);
+        });
+
+        layer.on('error', function(err) {
+          console.log('error: ' + err);
+        });
+
+      }).on('error', function() {
+        console.log("some error occurred");
+      });
+
+    }
+
+    window.onload = main;
+
+  </script>
+
+
+</html>
